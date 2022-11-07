@@ -32,7 +32,6 @@ const postBookToDatabase = (request, h) => {
                 },
             });
             res.code(201);
-            console.log(database);
             return res;
         }
         else{
@@ -80,4 +79,36 @@ function createNewBookObject(request){
     };
 }
 
-module.exports = {postBookToDatabase};
+const getAllBook = (_,h) => {
+    const response = h.response({
+        status : "success",
+        data   :  {database},
+    });
+    response.code(200);
+    return response;
+}
+
+const getBookById = (request, h) => {
+    const {id} = request.params;
+    const index = database.indexOf((book) => book.id === id);
+
+    if(index === undefined){
+        const res = h.response({
+            status: 'fail',
+            message: 'Buku tidak ditemukan',
+        });
+        res.code(404);  
+        return res;
+    }
+    const book = database.at(index);
+    const res = h.response({
+        status  : 'success',
+        data    : {
+            book
+        },
+    });
+    res.code(200);
+    return res;
+
+}
+module.exports = {postBookToDatabase, getAllBook, getBookById};
