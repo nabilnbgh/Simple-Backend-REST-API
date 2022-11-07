@@ -7,4 +7,4 @@ const route = [
     },
 ]
 
-module.exports = route;
+module.exports = route; 
