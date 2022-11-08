@@ -1,4 +1,4 @@
-const {postBookToDatabase, getAllBook, getBookById} = require('./handlers');
+const {postBookToDatabase, getAllBook, getBookById, putBookById, deleteBookById} = require('./handlers');
 const route = [
     {
         method  : 'POST',
@@ -12,8 +12,18 @@ const route = [
     },
     {
         method  : 'GET',
-        path    : '/books/{id}',
+        path    : '/books/{bookId}',
         handler : getBookById
+    },
+    {
+        method  : 'PUT',
+        path    : '/books/{bookId}',
+        handler : putBookById
+    },
+    {
+        method  : 'DELETE',
+        path    : '/books/{bookId}',
+        handler : deleteBookById
     },
 ]
 

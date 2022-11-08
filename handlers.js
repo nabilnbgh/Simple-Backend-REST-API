@@ -2,7 +2,7 @@ const { nanoid } = require('nanoid');
 const database = require('./database');
 const postBookToDatabase = (request, h) => {
     const {name, pageCount, readPage} = request.payload;
-    if(name === null || toString(name).length === 0 || name === undefined){
+    if(name === null || name.length == 0 || name === undefined){
         const res = h.response({
             status: 'fail',
             message: 'Gagal menambahkan buku. Mohon isi nama buku',
@@ -89,10 +89,9 @@ const getAllBook = (_,h) => {
 }
 
 const getBookById = (request, h) => {
-    const {id} = request.params;
-    const index = database.indexOf((book) => book.id === id);
-
-    if(index === undefined){
+    const {bookId} = request.params;
+    const book = database.find((book) => book.id === bookId);
+    if(book === undefined ){
         const res = h.response({
             status: 'fail',
             message: 'Buku tidak ditemukan',
@@ -100,7 +99,6 @@ const getBookById = (request, h) => {
         res.code(404);  
         return res;
     }
-    const book = database.at(index);
     const res = h.response({
         status  : 'success',
         data    : {
@@ -109,6 +107,89 @@ const getBookById = (request, h) => {
     });
     res.code(200);
     return res;
+}
+
+const putBookById = (request, h) => {
+    const {bookId} = request.params;
+    const index = database.findIndex((book) => book.id === bookId);
+    const {name, readPage, pageCount} = request.payload;
+    if(index == -1){
+        const res = h.response({
+            status: 'fail',
+            message: 'Gagal memperbarui buku. Id tidak ditemukan',
+        });
+        res.code(404);  
+        return res;
+    }
+    if(name === undefined || name.length == 0 || name === null){
+        const res = h.response({
+            status: 'fail',
+            message: 'Gagal memperbarui buku. Mohon isi nama buku',
+        });
+        res.code(404);  
+        return res; 
+    }
+    if(parseInt(readPage) > parseInt(pageCount)){
+        const res = h.response({
+            status: 'fail',
+            message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
+        });
+        res.code(404);  
+        return res; 
+    }
+    if(updateBookObject(request.payload, index)){
+        const res = h.response({
+            status  : 'success',
+            message : 'Buku berhasil diperbaru',
+        });
+        res.code(200);
+        return res;
+    }
 
 }
-module.exports = {postBookToDatabase, getAllBook, getBookById};
+
+function updateBookObject(request,index){
+    const {
+        name,
+        year,
+        author,
+        summary,
+        publisher,
+        pageCount,
+        readPage,
+        reading
+    } = request;
+    const currentBook = database.at(index);
+    currentBook.name = name;
+    currentBook.year = year;
+    currentBook.author = author;
+    currentBook.summary = summary;
+    currentBook.publisher = publisher;
+    currentBook.pageCount = pageCount;
+    currentBook.readPage = readPage;
+    currentBook.reading = reading;
+    currentBook.insertedAt = new Date().toISOString();
+
+    return true;
+}
+
+const deleteBookById = (request, h) => {
+    const {bookId} = request.params;
+    const index = database.findIndex((book) => book.id === bookId);
+    if(index == -1){
+        const res = h.response({
+            status: 'fail',
+            message: 'Buku gagal dihapus. Id tidak ditemukan',
+        });
+        res.code(404);  
+        return res;
+    }
+    database.splice(index, 1);
+    const response = h.response({
+        status: 'success',
+        message: 'Buku berhasil dihapus',
+    });
+    response.code(200);
+    return response;
+}
+module.exports = {postBookToDatabase, getAllBook, getBookById ,putBookById, deleteBookById};
