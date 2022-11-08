@@ -2,7 +2,7 @@ const { nanoid } = require('nanoid');
 const database = require('./database');
 const postBookToDatabase = (request, h) => {
     const {name, pageCount, readPage} = request.payload;
-    if(name === null || name.length == 0 || name === undefined){
+    if(name === null || name === undefined || (name !== undefined && name.length == 0)){
         const res = h.response({
             status: 'fail',
             message: 'Gagal menambahkan buku. Mohon isi nama buku',
@@ -79,13 +79,87 @@ function createNewBookObject(request){
     };
 }
 
-const getAllBook = (_,h) => {
+const getAllBook = (request,h) => {
+    const arr = []
+    const {name , reading, finished} = request.query;
+
+    if(name !== undefined){
+        database.forEach(book => {
+            if(book.name.toLowerCase().includes(name.toLowerCase())){
+                const bookObj = {
+                    id : book.id, 
+                    name : book.name, 
+                    publisher : book.publisher
+                };
+                arr.push(bookObj);
+            }
+
+        });
+        const response = h.response({
+            status : "success",
+            data   :  {
+                books : arr
+            },
+        });
+        response.code(200);
+        return response;
+    } else if (reading !== undefined){
+        database.forEach(book => {
+            if(book.reading == reading){
+                const bookObj = {
+                    id : book.id, 
+                    name : book.name, 
+                    publisher : book.publisher
+                };
+                arr.push(bookObj);   
+            }
+        });
+        const response = h.response({
+            status : "success",
+            data   :  {
+                books : arr
+            },
+        });
+        response.code(200);
+        return response;
+    } else if(finished !== undefined){
+        database.forEach(book => {
+            if(book.finished == finished){
+                const bookObj = {
+                    id : book.id, 
+                    name : book.name, 
+                    publisher : book.publisher
+                };
+                arr.push(bookObj);   
+            }
+        });
+        const response = h.response({
+            status : "success",
+            data   :  {
+                books : arr
+            },
+        });
+        response.code(200);
+        return response;
+    }
+    database.forEach(book => {
+        const bookObj = {
+            id : book.id, 
+            name : book.name, 
+            publisher : book.publisher
+        };
+        arr.push(bookObj);
+    });
     const response = h.response({
         status : "success",
-        data   :  {database},
+        data   :  {
+            books : arr
+        },
     });
     response.code(200);
     return response;
+
+
 }
 
 const getBookById = (request, h) => {
@@ -121,12 +195,12 @@ const putBookById = (request, h) => {
         res.code(404);  
         return res;
     }
-    if(name === undefined || name.length == 0 || name === null){
+    if(name === undefined || name === null || (name !== undefined && name.length == 0)){
         const res = h.response({
             status: 'fail',
             message: 'Gagal memperbarui buku. Mohon isi nama buku',
         });
-        res.code(404);  
+        res.code(400);  
         return res; 
     }
     if(parseInt(readPage) > parseInt(pageCount)){
@@ -134,13 +208,13 @@ const putBookById = (request, h) => {
             status: 'fail',
             message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
         });
-        res.code(404);  
+        res.code(400);  
         return res; 
     }
     if(updateBookObject(request.payload, index)){
         const res = h.response({
-            status  : 'success',
-            message : 'Buku berhasil diperbaru',
+            status: "success",
+            message: "Buku berhasil diperbarui"
         });
         res.code(200);
         return res;
